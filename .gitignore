@@ -1,0 +1,9 @@
+/ilsim
+/ilsim.exe
+*.test
+*.out
+/results/
+/**/testdata/fuzz/*/cache/
+.idea/
+.vscode/
+.DS_Store
