@@ -1,0 +1,6 @@
+{
+  "name": "baseline",
+  "description": "All sixteen committee members are honest and publish between 7.5 s and 8 s into the slot.",
+  "runs": 50,
+  "network": {"nodes": 1000}
+}
