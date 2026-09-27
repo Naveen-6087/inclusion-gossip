@@ -1,0 +1,7 @@
+{
+  "name": "network-size",
+  "description": "Propagation and bandwidth as the number of nodes grows.",
+  "runs": 20,
+  "network": {"nodes": 1000},
+  "sweep": {"path": "network.nodes", "values": [250, 500, 1000, 2000, 4000]}
+}
