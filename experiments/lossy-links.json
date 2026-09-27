@@ -1,0 +1,7 @@
+{
+  "name": "lossy-links",
+  "description": "Honest committee; every message is dropped with the swept probability. IHAVE/IWANT gossip repairs the gaps.",
+  "runs": 30,
+  "network": {"nodes": 1000},
+  "sweep": {"path": "network.loss", "values": [0, 0.01, 0.05, 0.1, 0.2, 0.3]}
+}

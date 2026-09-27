@@ -1,0 +1,7 @@
+{
+  "name": "slow-uplinks",
+  "description": "A swept share of nodes has a 10 Mbit/s uplink instead of 50 Mbit/s.",
+  "runs": 30,
+  "network": {"nodes": 1000, "slow_upload_mbps": 10},
+  "sweep": {"path": "network.slow_fraction", "values": [0, 0.25, 0.5, 0.75, 1]}
+}
