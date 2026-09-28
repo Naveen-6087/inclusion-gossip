@@ -1,0 +1,8 @@
+{
+  "name": "idontwant",
+  "description": "GossipSub v1.2 IDONTWANT on and off, with and without flood publishing.",
+  "runs": 30,
+  "network": {"nodes": 1000},
+  "gossip": {"flood_publish": false},
+  "sweep": {"path": "gossip.idontwant", "values": [true, false]}
+}
