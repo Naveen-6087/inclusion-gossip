@@ -1,0 +1,8 @@
+{
+  "name": "withholding",
+  "description": "A swept number of committee members never publish.",
+  "runs": 30,
+  "network": {"nodes": 1000},
+  "adversaries": [{"kind": "silent", "count": 1}],
+  "sweep": {"path": "adversaries.0.count", "values": [0, 1, 4, 8, 12, 15]}
+}
