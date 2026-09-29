@@ -1,0 +1,8 @@
+{
+  "name": "equivocation",
+  "description": "One member sends version A to half its peers at 8.5 s and a conflicting version B to the other half at the swept time.",
+  "runs": 50,
+  "network": {"nodes": 1000},
+  "adversaries": [{"kind": "equivocate", "at": "8.5s", "split": 0.5}],
+  "sweep": {"path": "adversaries.0.second_at", "values": ["8.5s", "8.9s", "9.5s", "10.5s", "10.8s", "10.9s", "11s", "12s", "12.9s"]}
+}
