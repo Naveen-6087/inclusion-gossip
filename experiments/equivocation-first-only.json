@@ -1,0 +1,9 @@
+{
+  "name": "equivocation-first-only",
+  "description": "As equivocation, but nodes accept only the first list per member, so the conflicting version is never forwarded as evidence.",
+  "runs": 50,
+  "network": {"nodes": 1000},
+  "rules": {"lists_per_validator": 1},
+  "adversaries": [{"kind": "equivocate", "at": "8.5s", "split": 0.5}],
+  "sweep": {"path": "adversaries.0.second_at", "values": ["8.5s", "8.9s", "9.5s", "10.9s"]}
+}
