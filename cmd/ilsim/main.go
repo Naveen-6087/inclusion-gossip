@@ -11,7 +11,10 @@ import (
 	"text/tabwriter"
 	"time"
 
+	tea "github.com/charmbracelet/bubbletea"
+
 	"github.com/Naveen-6087/inclusion-gossip/experiment"
+	"github.com/Naveen-6087/inclusion-gossip/tui"
 )
 
 const usage = `usage: ilsim <command> [flags] <experiment.json>...
@@ -20,6 +23,7 @@ commands:
   run       run experiments and write results
   slot      simulate a single slot and list every inclusion list
   check     validate experiment files without running them
+  tui       explore single slots interactively (default: experiments/*.json)
 
 run "ilsim <command> -h" for flags`
 
@@ -44,7 +48,8 @@ func run(args []string, out io.Writer) error {
 		return cmdSlot(args[1:], out)
 	case "check":
 		return cmdCheck(args[1:], out)
-
+	case "tui":
+		return cmdTUI(args[1:])
 	case "-h", "--help", "help":
 		fmt.Fprintln(out, usage)
 		return nil
@@ -189,4 +194,25 @@ func cmdCheck(args []string, out io.Writer) error {
 		fmt.Fprintf(out, "%s: ok (%s, %d points x %d runs)\n", path, cfg.Name, len(points), points[0].Config.Runs)
 	}
 	return nil
+}
+
+func cmdTUI(args []string) error {
+	fs := flag.NewFlagSet("tui", flag.ContinueOnError)
+	seed := fs.Uint64("seed", 1, "first seed")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	paths := fs.Args()
+	if len(paths) == 0 {
+		paths, _ = filepath.Glob(filepath.Join("experiments", "*.json"))
+		if len(paths) == 0 {
+			return errors.New("tui: no experiment files given and none in ./experiments")
+		}
+	}
+	entries, err := tui.LoadEntries(paths)
+	if err != nil {
+		return err
+	}
+	_, err = tea.NewProgram(tui.New(entries, *seed), tea.WithAltScreen()).Run()
+	return err
 }
