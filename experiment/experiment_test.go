@@ -284,3 +284,27 @@ func TestOutputs(t *testing.T) {
 		t.Fatalf("json: %v", err)
 	}
 }
+
+func TestCoverageCurves(t *testing.T) {
+	c := small(t, `, "adversaries": [{"kind": "late", "at": "8.5s"}, {"kind": "silent"}]`).WithDefaults()
+	r, err := RunSlot(c, 3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	steps := int(c.Timeline.AttesterCheck.Duration/curveStep) + 1
+	if r.CurveStepMs != 100 || len(r.HonestCurve) != steps || len(r.AdversaryCurve) != steps {
+		t.Fatalf("step %v, curves %d/%d, want %d", r.CurveStepMs, len(r.HonestCurve), len(r.AdversaryCurve), steps)
+	}
+	for i := 1; i < steps; i++ {
+		if r.HonestCurve[i] < r.HonestCurve[i-1] || r.AdversaryCurve[i] < r.AdversaryCurve[i-1] {
+			t.Fatalf("curve decreases at step %d", i)
+		}
+	}
+	if r.HonestCurve[0] != 0 || r.HonestCurve[steps-1] < 0.99 {
+		t.Fatalf("honest curve from %v to %v", r.HonestCurve[0], r.HonestCurve[steps-1])
+	}
+	// The late list is published at 8.5 s: nobody has it at 8.5 s, almost everyone by the end.
+	if r.AdversaryCurve[85] != 0 || r.AdversaryCurve[steps-1] < 0.99 {
+		t.Fatalf("late curve %v at 8.5s, %v at the end", r.AdversaryCurve[85], r.AdversaryCurve[steps-1])
+	}
+}
