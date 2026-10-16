@@ -106,7 +106,7 @@ All the times are configurable.
 ## Usage
 
 ```bash
-git clone https://github.com/Naveen-6087/cicada inclusion-gossip
+git clone https://github.com/Naveen-6087/inclusion-gossip
 cd inclusion-gossip
 go run ./cmd/ilsim check experiments/*.json
 go run ./cmd/ilsim run experiments/baseline.json
