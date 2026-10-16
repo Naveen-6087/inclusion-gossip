@@ -113,10 +113,18 @@ go run ./cmd/ilsim check experiments/*.json
 go run ./cmd/ilsim run experiments/baseline.json
 go run ./cmd/ilsim run -runs 100 -seed 7 experiments/late-publisher.json
 go run ./cmd/ilsim slot -point 5 -seed 3 experiments/late-publisher-strict.json
+go run ./cmd/ilsim tui
 ```
 
 - **`run`** prints a table and writes `results/<name>.json` (the full effective configuration and the summaries) and `results/<name>.csv`. Add `-detail` to include every run in the JSON.
-- **`slot`** simulates a single slot and lists every inclusion list, which is useful for looking at one case closely.
+- **`slot`** simulates a single slot and lists every inclusion list, which is useful for looking at one case closely. Add `-json` for the full result, including the coverage curves.
+- **`tui`** is an interactive slot explorer. It takes experiment files, or every file in `experiments/` by default. It shows:
+  - how the share of nodes holding honest and adversarial lists grows from 7 s to the attester check, with the freeze and proposer-cutoff deadlines marked
+  - the next block: lists counted by the proposer and attesters, list mismatch, attesters that would reject it, and equivocation detection
+  - traffic per node
+  - every list with its publish time, coverage at the freeze, the share of attesters counting it and p99 latency
+
+  `↑`/`↓` switch experiment, `←`/`→` step through sweep points, `s`/`S` change the seed and `j`/`k` scroll the lists. Each change simulates a new slot in the background.
 
 An experiment file looks like this:
 
@@ -187,7 +195,8 @@ go test ./... -run '^$' -bench .
   - Scenario checks: honest baseline, late lists, the strict proposer view, equivocation with and without evidence forwarding, silent and invalid members.
   - Invariants over 25 random configurations, including coverage monotonicity, quantile order, and unsatisfied ≤ mismatch.
   - Coverage curves rise monotonically, start at zero and reach every node, and a late list is absent before it is published.
-- **`cmd/ilsim`.** Every shipped experiment validates, and `run` and `slot` work end to end.
+- **`tui`.** Sparklines, bars and resampling; the explorer's navigation and seed handling; results of superseded runs are discarded; a real slot renders every panel.
+- **`cmd/ilsim`.** Every shipped experiment validates, `run`, `slot` and `slot -json` work end to end, and `tui` rejects missing experiments.
 
 A single 1,000-node slot (about 350k events) takes about 0.34 s on one core.
 
