@@ -81,6 +81,7 @@ Every run also reports:
 - **Unsatisfied attesters:** the share whose required transactions are not all among the proposer's. Those attesters would vote against a block built from the proposer's view.
 - **Equivocation detection** by the freeze deadline and by the check.
 - **Traffic:** bytes sent per node and duplicates received per node.
+- **Coverage curves:** the mean share of nodes holding an honest list, and an adversarial one, every 100 ms from the start of the slot to the check. Silent members are left out.
 
 Per sweep point these are summarised as mean, min, p50, p90 and max over the runs.
 
@@ -185,6 +186,7 @@ go test ./... -run '^$' -bench .
   - Results are identical across worker counts and change with the seed.
   - Scenario checks: honest baseline, late lists, the strict proposer view, equivocation with and without evidence forwarding, silent and invalid members.
   - Invariants over 25 random configurations, including coverage monotonicity, quantile order, and unsatisfied ≤ mismatch.
+  - Coverage curves rise monotonically, start at zero and reach every node, and a late list is absent before it is published.
 - **`cmd/ilsim`.** Every shipped experiment validates, and `run` and `slot` work end to end.
 
 A single 1,000-node slot (about 350k events) takes about 0.34 s on one core.
