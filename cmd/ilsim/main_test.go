@@ -80,3 +80,40 @@ func TestErrors(t *testing.T) {
 		}
 	}
 }
+
+func TestSlotJSON(t *testing.T) {
+	dir := t.TempDir()
+	cfg := filepath.Join(dir, "exp.json")
+	os.WriteFile(cfg, []byte(`{"name": "one", "network": {"nodes": 80, "peers": 10},
+		"adversaries": [{"kind": "late", "at": "8.5s"}]}`), 0o644)
+	var out bytes.Buffer
+	if err := run([]string{"slot", "-json", "-seed", "2", cfg}, &out); err != nil {
+		t.Fatal(err)
+	}
+	var v struct {
+		Experiment string
+		Point      string
+		Result     struct {
+			Seed        uint64
+			Lists       []struct{ Kind string }
+			HonestCurve []float64 `json:"honest_curve"`
+		}
+	}
+	if err := json.Unmarshal(out.Bytes(), &v); err != nil {
+		t.Fatalf("%v:\n%s", err, out.String())
+	}
+	if v.Experiment != "one" || v.Result.Seed != 2 || len(v.Result.Lists) != 16 || len(v.Result.HonestCurve) == 0 {
+		t.Fatalf("decoded %+v", v)
+	}
+}
+
+func TestTUIArgumentErrors(t *testing.T) {
+	var out bytes.Buffer
+	if err := run([]string{"tui", "missing.json"}, &out); err == nil {
+		t.Error("missing experiment accepted")
+	}
+	// No files given and no ./experiments directory here.
+	if err := run([]string{"tui"}, &out); err == nil || !strings.Contains(err.Error(), "no experiment files") {
+		t.Errorf("tui without experiments: %v", err)
+	}
+}
