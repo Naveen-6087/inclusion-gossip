@@ -59,6 +59,12 @@ type RunResult struct {
 	ProposerLists int     `json:"proposer_lists"`
 	MeanLists     float64 `json:"mean_attester_lists"`
 
+	// Mean share of the other nodes holding an honest (or adversarial) list,
+	// sampled every CurveStepMs from the start of the slot to the check.
+	CurveStepMs    float64   `json:"curve_step_ms,omitempty"`
+	HonestCurve    []float64 `json:"honest_curve,omitempty"`
+	AdversaryCurve []float64 `json:"adversary_curve,omitempty"`
+
 	Lists         []ListResult         `json:"lists"`
 	Equivocations []EquivocationResult `json:"equivocations,omitempty"`
 
@@ -278,6 +284,9 @@ func measure(cfg Config, seed uint64, s *sim.Sim, net *network.Network, tr *netw
 		}
 	}
 
+	r.CurveStepMs = float64(curveStep / time.Millisecond)
+	r.HonestCurve, r.AdversaryCurve = coverage(members, firstSeen, tl.AttesterCheck.Duration)
+
 	var bytes, dups int64
 	for v := range n {
 		bytes += tr.BytesSent[v]
@@ -287,6 +296,49 @@ func measure(cfg Config, seed uint64, s *sim.Sim, net *network.Network, tr *netw
 	r.MeanBytesSent = float64(bytes) / float64(n)
 	r.MeanDups = float64(dups) / float64(n)
 	return r
+}
+
+const curveStep = 100 * time.Millisecond
+
+// coverage averages, per sample time, the share of other nodes that had each
+// honest and each adversarial list. Silent members have nothing to spread
+// and are left out.
+func coverage(members []member, firstSeen [][]sim.Time, end sim.Time) (honest, adv []float64) {
+	steps := int(end/curveStep) + 1
+	var hn, an int
+	hsum, asum := make([]float64, steps), make([]float64, steps)
+	for mi, m := range members {
+		if m.kind == KindSilent {
+			continue
+		}
+		counts := make([]int, steps)
+		for v, t := range firstSeen[mi] {
+			if v == m.node || t < 0 {
+				continue
+			}
+			counts[min(steps-1, int((t+curveStep-1)/curveStep))]++
+		}
+		sum, acc := hsum, &hn
+		if m.kind != "honest" {
+			sum, acc = asum, &an
+		}
+		*acc++
+		others, held := float64(len(firstSeen[mi])-1), 0
+		for i := range steps {
+			held += counts[i]
+			sum[i] += float64(held) / others
+		}
+	}
+	norm := func(sum []float64, n int) []float64 {
+		if n == 0 {
+			return nil
+		}
+		for i := range sum {
+			sum[i] /= float64(n)
+		}
+		return sum
+	}
+	return norm(hsum, hn), norm(asum, an)
 }
 
 func ms(t sim.Time) float64 {
