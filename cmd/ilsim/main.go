@@ -44,6 +44,7 @@ func run(args []string, out io.Writer) error {
 		return cmdSlot(args[1:], out)
 	case "check":
 		return cmdCheck(args[1:], out)
+
 	case "-h", "--help", "help":
 		fmt.Fprintln(out, usage)
 		return nil
@@ -120,6 +121,7 @@ func cmdSlot(args []string, out io.Writer) error {
 	fs := flag.NewFlagSet("slot", flag.ContinueOnError)
 	seed := fs.Uint64("seed", 1, "seed")
 	point := fs.Int("point", 0, "sweep point index")
+	asJSON := fs.Bool("json", false, "print the full result as JSON")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -140,6 +142,15 @@ func cmdSlot(args []string, out io.Writer) error {
 	r, err := experiment.RunSlot(points[*point].Config, *seed)
 	if err != nil {
 		return err
+	}
+	if *asJSON {
+		enc := json.NewEncoder(out)
+		enc.SetIndent("", "  ")
+		return enc.Encode(struct {
+			Experiment string               `json:"experiment"`
+			Point      string               `json:"point"`
+			Result     experiment.RunResult `json:"result"`
+		}{cfg.Name, points[*point].Label, r})
 	}
 	fmt.Fprintf(out, "%s, point %s, seed %d: %d events, proposer node %d\n\n", cfg.Name, points[*point].Label, *seed, r.Events, r.Proposer)
 	tw := tabwriter.NewWriter(out, 0, 0, 2, ' ', tabwriter.AlignRight)
